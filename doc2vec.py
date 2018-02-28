@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from collections import Counter
 from gensim import corpora
+from gensim.models import word2vec
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation
 import gensim
@@ -148,7 +150,13 @@ no_top_words = 6
 users = data_en.groupby('user_name')['clean_text'].apply(list).reset_index()
 users["users_text"] = users["clean_text"].apply(lambda x: "".join(str(i) for i in x))
 
-print df["hashtags"].value_counts()[0:10]
 pol_list = ['congress', 'inc', 'modi','gandhi','jds','cmofkarnataka','siddaramaiah']
 for i in pol_list:
 	political = users[users["users_text"].str.contains(i, case = False)]
+
+users["users_text"] = users["users_text"].apply(lambda x: nltk.word_tokenize(x))
+users["count"] = users["users_text"].apply(lambda x: Counter(x))
+
+model = gensim.models.Word2Vec(users["users_text"], min_count=5)
+congress = model.wv.most_similar('modi', topn =5)
+print congress
